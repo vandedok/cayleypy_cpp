@@ -5,6 +5,7 @@ CayleyPy API Reference
 Core classes and functions
 ''''''''''''''''''''''''''
 
+
 .. toctree::
    :maxdepth: 1
 
@@ -19,6 +20,7 @@ Core classes and functions
 Graphs library
 ''''''''''''''
 
+
 .. autosummary::
     :toctree: generated/
 
@@ -32,15 +34,20 @@ Graphs library
 Beam search and ML
 ''''''''''''''''''
 
+
 .. autosummary::
     :toctree: generated/
 
     cayleypy.BeamSearchResult
     cayleypy.Predictor
     cayleypy.models.ModelConfig
+    cayleypy.algo.RandomWalksGenerator
+    cayleypy.algo.BeamSearchAlgorithm
 
 Special algorithms
 ''''''''''''''''''
+
+
 .. autosummary::
     :toctree: generated/
 
