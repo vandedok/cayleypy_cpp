@@ -1,5 +1,6 @@
 import gc
 import math
+from functools import cached_property
 from typing import Callable, Optional, Union
 
 import numpy as np
@@ -10,8 +11,6 @@ from .algo.random_walks import RandomWalksGenerator
 from .bfs_result import BfsResult
 from .cayley_graph_def import AnyStateType, CayleyGraphDef, GeneratorType
 from .hasher import StateHasher
-
-
 from .string_encoder import StringEncoder
 from .torch_utils import isin_via_searchsorted
 
@@ -57,6 +56,7 @@ class CayleyGraph:
         batch_size: int = 2**20,
         hash_chunk_size: int = 2**25,
         memory_limit_gb: float = 16,
+        _hasher: Optional[StateHasher] = None,
         **unused_kwargs,
     ):
         """Initializes CayleyGraph.
@@ -106,7 +106,10 @@ class CayleyGraph:
                 ]
                 self.encoded_state_size = self.string_encoder.encoded_length
 
-        self.hasher = StateHasher(self, random_seed, chunk_size=hash_chunk_size)
+        if _hasher is not None:
+            self.hasher = _hasher
+        else:
+            self.hasher = StateHasher(self, random_seed, chunk_size=hash_chunk_size)
         self.central_state_hash = self.hasher.make_hashes(self.encode_states(self.central_state))
 
     def get_unique_states(
@@ -378,7 +381,7 @@ class CayleyGraph:
         `to_state` must be in "decoded" format.
         Length of returned path is equal to number of layers.
         """
-        inv_graph = CayleyGraph(self.definition.with_inverted_generators())
+        inv_graph = self.with_inverted_generators
         assert len(hashes[0]) == 1
         path = []  # type: list[int]
         cur_state = self.decode_states(self.encode_states(to_state))
@@ -445,3 +448,18 @@ class CayleyGraph:
     def generators(self):
         """Generators of this Cayley graph."""
         return self.definition.generators
+
+    @cached_property
+    def with_inverted_generators(self):
+        """Returns copy of this graph with inverted generators."""
+        return self.modified_copy(self.definition.with_inverted_generators())
+
+    def modified_copy(self, new_def: CayleyGraphDef) -> "CayleyGraph":
+        """Makes a copy of this graph with different definition but other parameters unchanged.
+
+        The new graph will use the same encoding and hashing for states as the original.
+        """
+        ans = CayleyGraph(new_def, _hasher=self.hasher)
+        ans.hasher = self.hasher
+        ans.string_encoder = self.string_encoder
+        return ans
