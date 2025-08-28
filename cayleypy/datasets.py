@@ -230,6 +230,7 @@ def generate_datasets():
     _update_dataset("heisenberg_growth", keys, _compute_heisenberg_growth)
     keys = [str(n) for n in range(2, 8)]
     _update_dataset("all_cycles_cayley_growth", keys, _compute_all_cycles_cayley_growth)
+    keys = [str(n) for n in range(3, 10)]
     _update_dataset("block_interchange_cayley_growth", keys, _compute_block_interchange_cayley_growth)
     keys = [f"{n},{k}" for n in range(2, 10) for k in range(2, n + 1)]
     _update_dataset("wrapped_k_cycles_cayley_growth", keys, _compute_wrapped_k_cycles_cayley_growth)

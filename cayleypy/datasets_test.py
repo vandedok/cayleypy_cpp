@@ -85,7 +85,7 @@ def test_block_interchange_cayley_growth():
     for key, layer_sizes in load_dataset("block_interchange_cayley_growth").items():
         n = int(key)
         assert sum(layer_sizes) == math.factorial(n)
-        assert len(layer_sizes) - 1 == n // 2 + 1
+        assert len(layer_sizes) == n // 2 + 1
 
 
 def test_pancake_cayley_growth():
