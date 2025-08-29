@@ -2,6 +2,7 @@
 
 from typing import Any, Sequence
 from collections import Counter
+import random
 from itertools import combinations, permutations
 from sympy.combinatorics import Permutation
 
@@ -101,3 +102,25 @@ def permutations_with_cycle_lenghts(n: int, cycle_lengths: list[int]) -> list[li
         # convert cycles (tuples) to sympy Permutation
         result.append(Permutation(list(cycles), size=n).array_form)
     return result
+
+
+def partition_to_permutation(partition: list[int], flag_random: bool = False) -> list[int]:
+    """
+    Given a partition (list of integers summing to n),
+    returns a 0-based permutation (list of length n)
+    whose cycle decomposition corresponds to the given partition.
+    """
+    n = sum(partition)
+    elements = list(range(n))
+    if flag_random:
+        random.shuffle(elements)
+
+    permutation = [0] * n
+    idx = 0
+    for size in partition:
+        cycle = elements[idx : idx + size]
+        for i in range(size):
+            permutation[cycle[i]] = cycle[(i + 1) % size]
+        idx += size
+
+    return permutation
