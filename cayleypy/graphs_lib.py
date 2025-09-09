@@ -1,6 +1,7 @@
 """Library of pre-defined graphs."""
 
 from itertools import permutations, combinations
+from typing import Union
 import numpy as np
 
 from .cayley_graph_def import CayleyGraphDef, MatrixGenerator
@@ -535,7 +536,7 @@ class PermutationGroups:
         )
 
     @staticmethod
-    def conjugacy_class(n: int, classes: dict[tuple[int], int | None]) -> CayleyGraphDef:
+    def conjugacy_class(n: int, classes: dict[tuple[int], Union[int, None]]) -> CayleyGraphDef:
         """
         Conjugacy class is a subset of permutations with same cycle lengths which form a partition of n.
 
@@ -548,8 +549,8 @@ class PermutationGroups:
         If sum(cycle_lengths) < n, the remaining elements are treated as 1-cycles.
 
         Example: n = 4, classes = {(2, 2): None, (3,): 5} is the same as {(2, 2): None, (3, 1): 5},
-          creates a Cayley Graph whose generators are all permutations with two 2-cycles and
-          5 random generators with one 3-cycle.
+          creates a Cayley graph whose generators are all permutations with two 2-cycles and
+          5 random permutations with one 3-cycle.
         """
         assert n >= 1, "n must be >= 1"
         assert all(
