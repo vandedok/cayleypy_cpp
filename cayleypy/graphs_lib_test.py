@@ -282,6 +282,26 @@ def test_three_cycles_0ij():
     assert np.array_equal(graph.generators, expected_generators)
 
 
+def test_stars():
+    assert len(PermutationGroups.stars(3).generators) == 2
+    assert len(PermutationGroups.stars(4).generators) == 3
+    assert len(PermutationGroups.stars(5).generators) == 4
+    result_3 = PermutationGroups.stars(3)
+    assert result_3.generators == [[1, 0, 2], [2, 1, 0]]
+    result_4 = PermutationGroups.stars(4)
+    assert result_4.generators == [[1, 0, 2, 3], [2, 1, 0, 3], [3, 1, 2, 0]]
+
+
+def test_generalized_stars():
+    assert len(PermutationGroups.generalized_stars(3, 1).generators) == 2
+    assert len(PermutationGroups.generalized_stars(4, 2).generators) == 4
+    assert len(PermutationGroups.generalized_stars(5, 2).generators) == 6
+    result_3 = PermutationGroups.generalized_stars(3, 1)
+    assert result_3.generators == [[1, 0, 2], [2, 1, 0]]
+    result_4 = PermutationGroups.generalized_stars(4, 2)
+    assert result_4.generators == [[2, 1, 0, 3], [3, 1, 2, 0], [0, 2, 1, 3], [0, 3, 2, 1]]
+
+
 def test_derangements():
     assert PermutationGroups.derangements(2).generators == [[1, 0]]
     assert PermutationGroups.derangements(3).generators == [[1, 2, 0], [2, 0, 1]]
