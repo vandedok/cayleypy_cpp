@@ -39,7 +39,6 @@ def test_all_transpositions():
 
 def test_transposons():
     graph = PermutationGroups.transposons(4)
-    print(graph.generators)
     assert np.array_equal(
         graph.generators,
         [
@@ -66,6 +65,47 @@ def test_transposons():
         "T[1..1,3]",
         "T[1..2,3]",
         "T[2..2,3]",
+    ]
+
+
+def test_block_interchange():
+    graph = PermutationGroups.block_interchange(4)
+    assert np.array_equal(
+        graph.generators,
+        [
+            [1, 0, 2, 3],
+            [1, 2, 0, 3],
+            [1, 2, 3, 0],
+            [2, 1, 0, 3],
+            [2, 3, 1, 0],
+            [3, 1, 2, 0],
+            [2, 0, 1, 3],
+            [2, 3, 0, 1],
+            [3, 2, 0, 1],
+            [3, 0, 1, 2],
+            [0, 2, 1, 3],
+            [0, 2, 3, 1],
+            [0, 3, 2, 1],
+            [0, 3, 1, 2],
+            [0, 1, 3, 2],
+        ],
+    )
+    assert graph.generator_names == [
+        "I[0..0,1..1]",
+        "I[0..0,1..2]",
+        "I[0..0,1..3]",
+        "I[0..0,2..2]",
+        "I[0..0,2..3]",
+        "I[0..0,3..3]",
+        "I[0..1,2..2]",
+        "I[0..1,2..3]",
+        "I[0..1,3..3]",
+        "I[0..2,3..3]",
+        "I[1..1,2..2]",
+        "I[1..1,2..3]",
+        "I[1..1,3..3]",
+        "I[1..2,3..3]",
+        "I[2..2,3..3]",
     ]
 
 
