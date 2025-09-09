@@ -57,8 +57,10 @@ def permutation_from_cycles(n: int, cycles: list[list[int]], offset: int = 0) ->
 
 def permutations_with_cycle_lenghts(n: int, cycle_lengths: list[int]) -> list[list[int]]:
     """
-    Generate all permutations of {0,...,n-1} with cycle lengths given by `structure`
-    (a list, e.g. [2,1,1]).
+    Given cycle lengths — partition n = n_1 + ... + n_k, generates all permutations
+    of {0,...,n-1} with cycle lengths n_1, ..., n_k.
+    Example: n=4, cycle_lengths=[2, 1, 1] ->
+    [[0, 1, 3, 2], [0, 2, 1, 3], [0, 3, 2, 1], [1, 0, 2, 3], [2, 1, 0, 3], [3, 1, 2, 0]]
     """
     if sum(cycle_lengths) != n:
         raise ValueError("Sum of cycle lengths must equal n")
@@ -106,9 +108,11 @@ def permutations_with_cycle_lenghts(n: int, cycle_lengths: list[int]) -> list[li
 
 def partition_to_permutation(partition: list[int], flag_random: bool = False) -> list[int]:
     """
-    Given a partition (list of integers summing to n),
-    returns a 0-based permutation (list of length n)
-    whose cycle decomposition corresponds to the given partition.
+    Given a partition n = n_1 + n_2 + ... + n_k,
+    returns a 0-based permutation of size n with cycle lengths n_1, n_2, ..., n_k.
+    If flag_random is True, returns a random permutation with such cycle lenghts; otherwise,
+    just rearranges consequitive elements of the identity permutation to obtain a permutation with such cycle lengths.
+    Example: partition=[3, 2, 1] -> [1, 2, 0, 4, 3, 5] (if flag_random=False)
     """
     n = sum(partition)
     elements = list(range(n))
