@@ -4,7 +4,6 @@ from typing import Any, Sequence
 from collections import Counter
 import random
 from itertools import combinations, permutations
-from sympy.combinatorics import Permutation
 
 
 def identity_perm(n: int) -> list[int]:
@@ -101,8 +100,12 @@ def permutations_with_cycle_lenghts(n: int, cycle_lengths: list[int]) -> list[li
                         yield [cycle] + tail_cycles
 
     for cycles in backtrack(-1, all_elems, lengths_counter):
-        # convert cycles (tuples) to sympy Permutation
-        result.append(Permutation(list(cycles), size=n).array_form)
+        arr = list(range(n))  # fixed points by default
+        for cyc in cycles:
+            size = len(cyc)
+            for i in range(size):
+                arr[cyc[i]] = cyc[(i + 1) % size]  # (a b c) maps a->b, b->c, c->a
+        result.append(arr)
     return result
 
 
