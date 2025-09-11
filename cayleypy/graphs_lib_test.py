@@ -449,7 +449,7 @@ def test_consecutive_k_cycles_contains_expected_generators():
 def test_conjugacy_class():
     n = 4
     classes = {(2, 2): None, (3,): None}
-    graph = PermutationGroups.conjugacy_class(n, classes=classes)
+    graph = PermutationGroups.conjugacy_classes(n, classes=classes)
     assert np.array_equal(
         graph.generators,
         [
@@ -483,7 +483,7 @@ def test_conjugacy_class():
 
     n = 5
     classes = {(2, 2): 5, (3,): 7}
-    graph = PermutationGroups.conjugacy_class(n, classes=classes)
+    graph = PermutationGroups.conjugacy_classes(n, classes=classes)
     assert graph.generator_names == [
         "(2,2,1)_1",
         "(2,2,1)_2",

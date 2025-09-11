@@ -56,11 +56,28 @@ def permutation_from_cycles(n: int, cycles: list[list[int]], offset: int = 0) ->
 
 def permutations_with_cycle_lenghts(n: int, cycle_lengths: list[int]) -> list[list[int]]:
     """
-    Given cycle lengths — partition n = n_1 + ... + n_k, generates all permutations
-    of {0,...,n-1} with cycle lengths n_1, ..., n_k.
-    Example: n=4, cycle_lengths=[2, 1, 1] ->
-    [[0, 1, 3, 2], [0, 2, 1, 3], [0, 3, 2, 1], [1, 0, 2, 3], [2, 1, 0, 3], [3, 1, 2, 0]]
+    Generates all 0-based permutations from S_n with given cycle lengths.
+
+    @param: cycle_lengths, list[int]
+        Contains positive integers which sum to n (order does not matter).
+
+    Returns: list of permutations, each represented as a list of size n.
+
+    Examples:
+        n=3, cycle_lengths=[3]: returns all 3-cycles from S_3:
+            [[1, 2, 0], [2, 0, 1]]
+
+        n=4, cycle_lengths=[2, 1, 1]: returns all permutations from S_4 with one 2-cycle and two fixed points:
+            [[0, 1, 3, 2], [0, 2, 1, 3], [0, 3, 2, 1], [1, 0, 2, 3], [2, 1, 0, 3], [3, 1, 2, 0]]
+
+        n=5, cycle_lengths=[2, 3]: returns all permutations from S_5 with one 2-cycle and one 3-cycle:
+            [[1, 0, 3, 4, 2], [1, 0, 4, 2, 3], [2, 3, 0, 4, 1], [2, 4, 0, 1, 3], [3, 2, 4, 0, 1],
+             [3, 4, 1, 0, 2], [4, 2, 3, 1, 0], [4, 3, 1, 2, 0], [1, 2, 0, 4, 3], [2, 0, 1, 4, 3],
+             [1, 3, 4, 0, 2], [3, 0, 4, 1, 2], [1, 4, 3, 2, 0], [4, 0, 3, 2, 1], [2, 4, 3, 0, 1],
+             [3, 4, 0, 2, 1], [2, 3, 4, 1, 0], [4, 3, 0, 1, 2], [3, 2, 1, 4, 0], [4, 2, 1, 0, 3]]
     """
+    assert n >= 1, "n must be at least 1"
+    assert all(k >= 1 for k in cycle_lengths), "All cycle lengths must be positive"
     if sum(cycle_lengths) != n:
         raise ValueError("Sum of cycle lengths must equal n")
 
@@ -109,22 +126,31 @@ def permutations_with_cycle_lenghts(n: int, cycle_lengths: list[int]) -> list[li
     return result
 
 
-def partition_to_permutation(partition: list[int], flag_random: bool = False) -> list[int]:
+def partition_to_permutation(cycle_lenghts: list[int], flag_random: bool = False) -> list[int]:
     """
-    Given a partition n = n_1 + n_2 + ... + n_k,
-    returns a 0-based permutation of size n with cycle lengths n_1, n_2, ..., n_k.
-    If flag_random is True, returns a random permutation with such cycle lenghts; otherwise,
-    just rearranges consequitive elements of the identity permutation to obtain a permutation with such cycle lengths.
-    Example: partition=[3, 2, 1] -> [1, 2, 0, 4, 3, 5] (if flag_random=False)
+    Returns a 0-based permutation from S_n with given cycle lengths.
+
+    @param: cycle_lengths, list[int]
+        Contains positive integers which sum to n and represent cycle lengths.
+
+    @param: flag_random, bool
+        If True, returns a random permutation with such cycle lenghts.
+        If False, consequitively rearranges elements of the identity permutation
+            to obtain a permutation with given cycle lengths.
+
+    Examples:
+        partition = [3, 2, 1], flag_random = False -> [1, 2, 0, 4, 3, 5]
+        partition = [1, 2, 3], flag_random = False -> [0, 2, 1, 4, 5, 3]
+        parition = [2, 2], flag_random = True -> [1, 0, 3, 2] or [2, 3, 0, 1] or [3, 2, 1, 0]
     """
-    n = sum(partition)
+    n = sum(cycle_lenghts)
     elements = list(range(n))
     if flag_random:
         random.shuffle(elements)
 
     permutation = [0] * n
     idx = 0
-    for size in partition:
+    for size in cycle_lenghts:
         cycle = elements[idx : idx + size]
         for i in range(size):
             permutation[cycle[i]] = cycle[(i + 1) % size]
