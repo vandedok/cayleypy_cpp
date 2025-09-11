@@ -538,18 +538,18 @@ class PermutationGroups:
     @staticmethod
     def conjugacy_classes(n: int, classes: dict[tuple[int], Union[int, None]]) -> CayleyGraphDef:
         """
-        A conjugacy class of S_n is a subset of permutations with same set of cycle lengths which form a partition of n.
+        A conjugacy class of S_n is a subset of permutations with same set of cycle lengths.
 
-        Each entry of `classes` dict specifies a conjugacy class:
+        Each entry (key, value) of `classes` dict specifies a conjugacy class:
             key, tuple[int]: cycle lengths, contains positive integers, the order does not matter, e.g.
                 (4,3,3) class have 2 cycles of length 3 (3-cycle) and one 4-cycle.
-                If sum(key) < n, the remaining elements are treated as 1-cycles.
-            value, int or None: the number of generators randomly sampled from a given class.
+                sum(key) must be <= n; if sum(key) < n, the remaining elements are treated as 1-cycles (fixed elements).
+            value, int or None: the number of generators randomly sampled from the class specified by key.
                 If None, all permutations are taken.
 
         Examples:
 
-        n = 6, classes = {(3, 2): None}:
+        n = 6, classes = {(3,2): None}:
             takes all permutations from S_6 with one 3-cycles, one 2-cycle, and one fixed element.
 
         n = 8, classes = {(3,2,3): None}:
@@ -565,11 +565,14 @@ class PermutationGroups:
             takes all permutations from S_10 with two 3-cycles and one 4-cycle,
             all permutations three 2-cycles and four fixed elemens,
             and 2 random permutations with one 10-cycle.
+
+        N.B. The set of cycle lengths of a permutation from S_n forms a partition of n (https://oeis.org/A000041)
         """
         assert n >= 1, "n must be >= 1"
         assert all(
             all(cl > 0 for cl in cycle_lengths) for cycle_lengths in classes
         ), "All cycle lengths must be positive"
+        assert all(sum(cycle_lengths) <= n for cycle_lengths in classes), "Sum of cycle lengths must be <= n"
 
         generators = []
         generator_names = []
