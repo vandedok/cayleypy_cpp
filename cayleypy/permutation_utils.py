@@ -126,7 +126,7 @@ def permutations_with_cycle_lenghts(n: int, cycle_lengths: list[int]) -> list[li
     return result
 
 
-def partition_to_permutation(cycle_lenghts: list[int], flag_random: bool = False) -> list[int]:
+def partition_to_permutation(cycle_lengths: list[int], flag_random: bool = False) -> list[int]:
     """
     Returns a 0-based permutation from S_n with given cycle lengths.
 
@@ -141,16 +141,18 @@ def partition_to_permutation(cycle_lenghts: list[int], flag_random: bool = False
     Examples:
         partition = [3, 2, 1], flag_random = False -> [1, 2, 0, 4, 3, 5]
         partition = [1, 2, 3], flag_random = False -> [0, 2, 1, 4, 5, 3]
-        parition = [2, 2], flag_random = True -> [1, 0, 3, 2] or [2, 3, 0, 1] or [3, 2, 1, 0]
+        partition = [2, 2], flag_random = True -> [1, 0, 3, 2] or [2, 3, 0, 1] or [3, 2, 1, 0]
     """
-    n = sum(cycle_lenghts)
+    assert all(k >= 1 for k in cycle_lengths), "All cycle lengths must be positive"
+
+    n = sum(cycle_lengths)
     elements = list(range(n))
     if flag_random:
         random.shuffle(elements)
 
     permutation = [0] * n
     idx = 0
-    for size in cycle_lenghts:
+    for size in cycle_lengths:
         cycle = elements[idx : idx + size]
         for i in range(size):
             permutation[cycle[i]] = cycle[(i + 1) % size]
