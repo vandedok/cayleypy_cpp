@@ -555,6 +555,9 @@ class PermutationGroups:
         n = 8, classes = {(3,2,3): None}:
             takes all permutations from S_8 with two 3-cycles and one 2-cycle.
 
+        n = 9, classes = {(4,): None}:
+            takes all permutations from S_9 with one 4-cycle and five fixed elements.
+
         n = 23, classes = {(1,3,1,5,3,5,4,1): 3}:
             takes three random permutations from S_23 with two 3-cycles, one 4-cycle, two 5-cycles, and three 1-cycles.
 
