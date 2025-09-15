@@ -91,11 +91,20 @@ def permutations_with_cycle_lenghts(n: int, cycle_lengths: list[int]) -> list[li
             if not available:
                 yield []
             return
-
+        # print(f"backtrack: {str(available):22}, {lengths_counter}")
         # iterate available distinct cycle lengths in increasing order
+
+        available_sorted = sorted(available)
         for k in sorted(lengths_counter):
+
+            # update multiset of lengths
+            new_lengths = lengths_counter.copy()
+            new_lengths[k] -= 1
+            if new_lengths[k] == 0:
+                del new_lengths[k]
+
             # choose combinations of available elements of size k
-            for comb in combinations(sorted(available), k):
+            for comb in combinations(available_sorted, k):
                 m = comb[0]  # minimal element of this cycle
                 if m <= last_min:
                     # ensure strict increase of minima -> canonical ordering
@@ -106,14 +115,9 @@ def permutations_with_cycle_lenghts(n: int, cycle_lengths: list[int]) -> list[li
                     cycle = (m,) + order
                     new_available = available - set(cycle)
 
-                    # update multiset of lengths
-                    new_lengths = lengths_counter.copy()
-                    new_lengths[k] -= 1
-                    if new_lengths[k] == 0:
-                        del new_lengths[k]
-
                     # recurse
                     for tail_cycles in backtrack(m, new_available, new_lengths):
+
                         yield [cycle] + tail_cycles
 
     for cycles in backtrack(-1, all_elems, lengths_counter):
