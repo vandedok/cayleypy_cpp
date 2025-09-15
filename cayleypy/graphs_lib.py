@@ -10,7 +10,7 @@ from .permutation_utils import (
     permutation_from_cycles,
     permutations_with_cycle_lenghts,
     partition_to_permutation,
-    inverse_permutation
+    inverse_permutation,
 )
 from .puzzles.hungarian_rings import get_santa_parameters_from_n
 from .puzzles.puzzles import Puzzles
