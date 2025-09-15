@@ -39,7 +39,6 @@ def test_all_transpositions():
 
 def test_transposons():
     graph = PermutationGroups.transposons(4)
-    print(graph.generators)
     assert np.array_equal(
         graph.generators,
         [
@@ -66,6 +65,47 @@ def test_transposons():
         "T[1..1,3]",
         "T[1..2,3]",
         "T[2..2,3]",
+    ]
+
+
+def test_block_interchange():
+    graph = PermutationGroups.block_interchange(4)
+    assert np.array_equal(
+        graph.generators,
+        [
+            [1, 0, 2, 3],
+            [1, 2, 0, 3],
+            [1, 2, 3, 0],
+            [2, 1, 0, 3],
+            [2, 3, 1, 0],
+            [3, 1, 2, 0],
+            [2, 0, 1, 3],
+            [2, 3, 0, 1],
+            [3, 2, 0, 1],
+            [3, 0, 1, 2],
+            [0, 2, 1, 3],
+            [0, 2, 3, 1],
+            [0, 3, 2, 1],
+            [0, 3, 1, 2],
+            [0, 1, 3, 2],
+        ],
+    )
+    assert graph.generator_names == [
+        "I[0..0,1..1]",
+        "I[0..0,1..2]",
+        "I[0..0,1..3]",
+        "I[0..0,2..2]",
+        "I[0..0,2..3]",
+        "I[0..0,3..3]",
+        "I[0..1,2..2]",
+        "I[0..1,2..3]",
+        "I[0..1,3..3]",
+        "I[0..2,3..3]",
+        "I[1..1,2..2]",
+        "I[1..1,2..3]",
+        "I[1..1,3..3]",
+        "I[1..2,3..3]",
+        "I[2..2,3..3]",
     ]
 
 
@@ -240,6 +280,42 @@ def test_three_cycles_0ij():
     assert graph.n_generators == 6
     expected_generators = [[1, 2, 0, 3], [1, 3, 2, 0], [2, 0, 1, 3], [2, 1, 3, 0], [3, 0, 2, 1], [3, 1, 0, 2]]
     assert np.array_equal(graph.generators, expected_generators)
+
+
+def test_three_cycles_01i():
+    graph = PermutationGroups.three_cycles_01i(4)
+    assert graph.n_generators == 4
+    assert graph.generators_inverse_closed
+    expected_generators = [[1, 2, 0, 3], [2, 0, 1, 3], [1, 3, 2, 0], [3, 0, 2, 1]]
+    assert np.array_equal(graph.generators, expected_generators)
+    assert graph.generator_names == ["(0 1 2)", "(1 0 2)", "(0 1 3)", "(1 0 3)"]
+
+    graph = PermutationGroups.three_cycles_01i(4, add_inverses=False)
+    assert graph.n_generators == 2
+    assert not graph.generators_inverse_closed
+    expected_generators = [[1, 2, 0, 3], [1, 3, 2, 0]]
+    assert np.array_equal(graph.generators, expected_generators)
+    assert graph.generator_names == ["(0 1 2)", "(0 1 3)"]
+
+
+def test_stars():
+    assert len(PermutationGroups.stars(3).generators) == 2
+    assert len(PermutationGroups.stars(4).generators) == 3
+    assert len(PermutationGroups.stars(5).generators) == 4
+    result_3 = PermutationGroups.stars(3)
+    assert result_3.generators == [[1, 0, 2], [2, 1, 0]]
+    result_4 = PermutationGroups.stars(4)
+    assert result_4.generators == [[1, 0, 2, 3], [2, 1, 0, 3], [3, 1, 2, 0]]
+
+
+def test_generalized_stars():
+    assert len(PermutationGroups.generalized_stars(3, 1).generators) == 2
+    assert len(PermutationGroups.generalized_stars(4, 2).generators) == 4
+    assert len(PermutationGroups.generalized_stars(5, 2).generators) == 6
+    result_3 = PermutationGroups.generalized_stars(3, 1)
+    assert result_3.generators == [[1, 0, 2], [2, 1, 0]]
+    result_4 = PermutationGroups.generalized_stars(4, 2)
+    assert result_4.generators == [[2, 1, 0, 3], [3, 1, 2, 0], [0, 2, 1, 3], [0, 3, 2, 1]]
 
 
 def test_derangements():
