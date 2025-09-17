@@ -2,6 +2,7 @@
 
 from itertools import permutations, combinations
 from typing import Union
+from math import factorial
 import numpy as np
 
 from .cayley_graph_def import CayleyGraphDef, MatrixGenerator
@@ -686,14 +687,20 @@ class PermutationGroups:
         """
         assert n >= 1, "n must be >= 1"
         assert k >= 1, "k must be >= 1"
+        assert k <= factorial(n), "k must be <= n!"
 
         generators = []
         generator_names = []
         perm = np.arange(n)
-        for _ in range(k):
+        perm_set = set()
+        counter = 0
+        while counter < k:
             np.random.shuffle(perm)
-            generators.append(perm.tolist())
-            generator_names.append(f"({','.join(map(str, perm))})")
+            if tuple(perm) not in perm_set:
+                counter += 1
+                perm_set.add(tuple(perm))
+                generators.append(perm.tolist())
+                generator_names.append(f"({','.join(map(str, perm))})")
 
         name = f"rand_generators-{n}-{k}"
         return CayleyGraphDef.create(
