@@ -593,8 +593,10 @@ class PermutationGroups:
         The construction is as follows:
 
         1. Starting with 0, transpositions (i, i+1) are created.
-        2. These transpositions are assigned to generators one by one. The first transposition (0,1) is assigned to one generator, the second (1,2) to another, the third (2,3) to the first again, and so on.
-        3. When the process reaches index k, a 4-cycle (k-1, k, k+1, k+2) is created, which is added to the current generator.
+        2. These transpositions are assigned to generators one by one. The first transposition (0,1) is assigned to one
+           generator, the second (1,2) to another, the third (2,3) to the first again, and so on.
+        3. When the process reaches index k, a 4-cycle (k-1, k, k+1, k+2) is created, which is added to the current
+           generator.
         4. After this, the alternate creation and assignment continues. transpositions (i, i+1).
         5. The process stops when n is reached.
         6. The final generators are obtained by multiplying all the permutations assigned to them.
