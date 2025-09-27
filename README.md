@@ -1,11 +1,11 @@
 # CayleyPy
 
-AI-based library to work with googol-size (~10<sup>100</sup> nodes) graphs.
+AI-based library to work with extremely large graphs.<br>
 Supporting:  Cayley graphs, Schreier coset graphs, more to be added.
 
 ## Overview
 
-Extremely large graphs (e.g. googol size) cannot be approached in a usual way,
+Extremely large graphs (e.g. googol size, ~10<sup>100</sup> nodes) cannot be approached in a usual way,
 it is impossible neither to create, neither to store them by standard methods.
 
 Typically such graphs arise as state-transition graphs.
@@ -205,6 +205,25 @@ List of currently available models is
 9. Run `pytest cayleypy/models/models_lib_test.py`. This will check that your model can be loaded from Kaggle and used
     for inference (i.e. has correct input and output shape), but it doesn't check quality of your model.
 9. Optionally, add a test that beam search with your model successfully finds a path.
+
+## Kaggle competitions
+
+Our community has recently launched several Kaggle competitions to develop and benchmark our methods and make it easier for the larger audience to get involved. Most of those competitions don't require the usage of this library, however it might be handy as those tasks are the ones 
+
+
+| Competition   | Graph size(s) | Description |
+| --------------| ------------- | ------------|
+| [4x4x4 Cube](https://www.kaggle.com/competitions/cayley-py-444-cube/)                                    | 10<sup>55</sup>                 | 4x4x4 Rubik's cube (play [here](https://alpha.twizzle.net/explore/?puzzle=4x4x4))                                                  |
+| [Christopher's Jewel](https://www.kaggle.com/competitions/cayleypy-christophers-jewel/)                  | (tba)                           | small octahedron-shaped puzzle (play [here](https://alpha.twizzle.net/explore/?puzzle=Christopher%27s+jewel))                      |
+| [Megaminx](https://www.kaggle.com/competitions/cayley-py-megaminx)                                       | (tba)                           | dodecahedron-shaped puzzle (play [here](https://alpha.twizzle.net/explore/?puzzle=Christopher%27s+jewel))                          |
+| [Professor Tetraminx](https://www.kaggle.com/competitions/cayley-py-professor-tetraminx-solve-optimally) | 10<sup>32</sup>                 | tetrahedron-shaped puzzle, medium size version (play [here](https://alpha.twizzle.net/explore/?puzzle=professor+tetraminx))        |
+| [IHES Supercube](https://www.kaggle.com/competitions/cayleypy-ihes-cube)                                 | (tba)                           | version of 3x3x3 Rubik's cube                                                                                                      |
+| [RapaportM2](https://www.kaggle.com/competitions/cayleypy-rapapport-m2/)                                 | (tba)                           | (tba)                                                                                                                              |
+| [Transposons](https://www.kaggle.com/competitions/cayleypy-rapapport-m2/)                                | 10<sup>8</sup>-10<sup>158</sup> | transpositions of adjacent substrings                                                                                              |
+| [Reversals](https://www.kaggle.com/competitions/cayleypy-reversals)                                      | 10<sup>8</sup>-10<sup>64</sup>  | substring reversals                                                                                                                |
+| [Pancake sorting](https://www.kaggle.com/competitions/CayleyPy-pancake)                                  | (tba)                           | (tba)                                                                                                                              |
+| [Glushkov's problem](https://www.kaggle.com/competitions/cayleypy-glushkov/)                             | (tba)                           | (tba)                                                                                                                              |
+
 
 ## Credits
 
