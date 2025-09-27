@@ -1,6 +1,6 @@
 # CayleyPy
 
-AI-based libarary to work with googol-size graphs.
+AI-based libarary to work with [googol-size](# "‘Googol-size’ means extremely large, specifically 10^100 in magnitude.") graphs.
 Supporting:  Cayley graphs, Schreier coset graphs, more to be added.
 
 
