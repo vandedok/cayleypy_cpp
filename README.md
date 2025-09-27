@@ -1,8 +1,7 @@
 # CayleyPy
 
-AI-based library to work with googol-size graphs.
+AI-based library to work with googol-size (~10<sup>100</sup> nodes) graphs.
 Supporting:  Cayley graphs, Schreier coset graphs, more to be added.
-
 
 ## Overview
 
