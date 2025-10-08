@@ -162,15 +162,16 @@ Then, you need to define your graph. Definition consists of the following:
 When you are ready do the following: 
 1. Create a fork of this repository.
 2. Clone your fork and make a new bracnch in your fork.
-2. Add your function to an approritate place. See how other graphs are defined and follow that as an example.
-3. Write a docstring for your function, describing your graph. If possible, include reference
+3. Add your function to an approritate place. See how other graphs are defined and follow that as an example.
+4. Write a docstring for your function, describing your graph. If possible, include reference
    (e.g. to Wikipedia article, Arxiv paper or a book) where the graph is defined.
-4. Add a test that creates an instance of your graph for small size and checks something about it 
+5. Add a test that creates an instance of your graph for small size and checks something about it 
      (at least check number of generators).
-5. Create a pull request from your fork to the this repository.
-6. Get two approvals from the reviewers team. They might make comments or request changes before
+6. Create a pull request from your fork to the this repository.
+7. Make sure that all automated checks (like unittests and style checks) are passed.
+8. Get two approvals from the reviewers team. They might make comments or request changes before
    provding an approval -- implement those. If needed, discuss how to proceed. 
-8. Once approvals are granted -- merge the PR.
+9. Once approvals are granted -- merge the PR.
 
 For more details on how to make PRs with forks refer to [this guide](https://graphite.dev/guides/create-and-manage-pull-requests-from-fork).
 
