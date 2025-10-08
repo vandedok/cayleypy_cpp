@@ -170,8 +170,9 @@ When you are ready do the following:
 6. Create a pull request from your fork to the this repository.
 7. Make sure that all automated checks (like unittests and style checks) are passed.
 8. Get two approvals from the reviewers team. They might make comments or request changes before
-   provding an approval -- implement those. If needed, discuss how to proceed. 
-9. Once approvals are granted -- merge the PR.
+   provding an approval -- implement those. If needed, discuss how to proceed. If a commit
+   is pushed after the approval, the approval has to be obtained again. 
+9. Once approvals are granted -- merge the PR. 
 
 For more details on how to make PRs with forks refer to [this guide](https://graphite.dev/guides/create-and-manage-pull-requests-from-fork).
 
