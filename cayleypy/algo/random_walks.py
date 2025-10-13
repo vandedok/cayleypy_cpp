@@ -233,3 +233,48 @@ class RandomWalksGenerator:
                 vec_hashes_current[:, i_cyclic_index_for_hash_storage] = vec_hashes_new
 
         return graph.decode_states(states), y
+
+
+# from .._cpp_algo import random_
+# def random_walks_classic_cpp(
+#         self, width: int, length: int, start_state: torch.Tensor
+#     ) -> tuple[torch.Tensor, torch.Tensor]:
+
+
+#         assert self.graph.is_permutation_group(), "C++ random walks only supported for permutation groups."
+
+
+#         """Generate classic random walks.
+
+#         :param width: Number of random walks to generate.
+#         :param length: Length of each random walk.
+#         :param start_state: Starting state for all walks.
+#         :return: Tuple of (states, distances).
+#         """
+
+
+#         # Allocate memory.
+#         graph = self.graph
+#         x_shape = (width * length, graph.encoded_state_size)
+#         x = torch.zeros(x_shape, device=graph.device, dtype=torch.int64)
+#         y = torch.zeros(width * length, device=graph.device, dtype=torch.int32)
+
+#         # First state in each walk is the start state.
+#         x[:width, :] = start_state.reshape((-1,))
+#         y[:width] = 0
+
+#         # Main loop.
+#         for i_step in range(1, length):
+#             y[i_step * width : (i_step + 1) * width] = i_step
+#             gen_idx = torch.randint(0, graph.definition.n_generators, (width,), device=graph.device)
+#             src = x[(i_step - 1) * width : i_step * width, :]
+#             dst = x[i_step * width : (i_step + 1) * width, :]
+#             for j in range(graph.definition.n_generators):
+#                 # Go to next state for walks where we chose to use j-th generator on this step.
+#                 mask = gen_idx == j
+#                 prev_states = src[mask, :]
+#                 next_states = torch.zeros_like(prev_states)
+#                 graph.apply_generator_batched(j, prev_states, next_states)
+#                 dst[mask, :] = next_states
+
+#         return graph.decode_states(x), y
