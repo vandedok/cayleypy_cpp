@@ -1,11 +1,7 @@
 [build-system]
 build-backend = "setuptools.build_meta"
-# requires = ["setuptools"]
-requires = [
-    "setuptools>=64",
-    "wheel",
-    "pybind11>=2.11",
-]
+requires = ["setuptools>=64"]
+
 
 
 [project]
@@ -37,6 +33,7 @@ dependencies = [
 # Development dependencies
 # pip install .[torch,lint,test,dev,docs]
 [project.optional-dependencies]
+cpp_extentions = []
 torch = [
     # torch is required, but it is optional here because if it is  in dependencies,
     # Kaggle would spend several minutes installing some dependencies, even though

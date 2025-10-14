@@ -3,11 +3,14 @@
 #include <random>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h> 
+#include <torch/extension.h>
 
 namespace py = pybind11;
 
 using std::vector;
 using std::cout;
+using torch::Tensor;
+using torch::tensor;
 
 const int* get_row_ptr(const vector<int>& mat, int row, int row_size) {
     return &mat[static_cast<size_t>(row) * row_size];
@@ -93,7 +96,7 @@ Walks generate_random_walk(const vector<int> gens, const vector<int> central_sta
 }
 
 
-Walks _random_walks_classic_cpp(const vector<int> gens, const vector<int> central_state, const int num_gens, const int state_size, const int num_walks, const int walks_len) {
+Tensor _random_walks_classic_cpp(const vector<int> gens, const vector<int> central_state, const int num_gens, const int state_size, const int num_walks, const int walks_len) {
     // print_vec(gens);
 
     int n_choices{num_walks*walks_len};  
@@ -124,8 +127,10 @@ Walks _random_walks_classic_cpp(const vector<int> gens, const vector<int> centra
             }
         }
     }
+    
+    auto states_tensor = tensor(rw_result.states, torch::dtype(torch::kInt32));
     // return rw_result by reference? -- less safe, might be more efficient
-    return rw_result; 
+    return states_tensor; 
 }
 
 // Create a Python module
