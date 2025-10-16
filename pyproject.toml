@@ -26,6 +26,7 @@ dependencies = [
     "numba",
     "numpy",
     "scipy",
+    "torch>=2.6.0",
 ]
 
 # Development dependencies
