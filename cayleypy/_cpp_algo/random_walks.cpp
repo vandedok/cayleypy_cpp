@@ -1,8 +1,8 @@
+#include "random_walks.h"
+
 #include <iostream>
 #include <vector>
 #include <random>
-#include <pybind11/pybind11.h>
-#include <pybind11/stl.h> 
 #include <torch/extension.h>
 
 namespace py = pybind11;
@@ -76,7 +76,7 @@ Walks generate_random_walk(const vector<int> gens, const vector<int> central_sta
     vector<int> current_state(central_state);
     vector<int> next_state(state_size);
     int choice{0};
-
+    int walks_index_offset{0};
 
     for (int i = 0; i < n_choices; i++) {
         rw_result.gen_choices.push_back(dist(gen));
@@ -84,8 +84,9 @@ Walks generate_random_walk(const vector<int> gens, const vector<int> central_sta
 
     for(int iw = 0; iw < num_walks; iw++) {
         current_state = central_state;
+        walks_index_offset = iw * walks_len;
         for(int js = 0; js < walks_len; js++){
-            apply_gen(current_state, rw_result.gen_choices[iw*walks_len + js], gens, state_size, next_state);
+            apply_gen(current_state, rw_result.gen_choices[walks_index_offset + js], gens, state_size, next_state);
             current_state.swap(next_state);
             for (int k = 0; k < state_size; k++)
                 rw_result.states.push_back(current_state[k]);
@@ -131,14 +132,4 @@ Tensor _random_walks_classic_cpp(const vector<int> gens, const vector<int> centr
     auto states_tensor = tensor(rw_result.states, torch::dtype(torch::kInt32));
     // return rw_result by reference? -- less safe, might be more efficient
     return states_tensor; 
-}
-
-// Create a Python module
-PYBIND11_MODULE(_cpp_algo, m) {
-    py::class_<Walks>(m, "Walks")
-        .def_readonly("states", &Walks::states)
-        .def_readonly("gen_choices", &Walks::gen_choices)
-        .def_readonly("distances", &Walks::distances);
-    m.doc() = "pybind11 example plugin"; // Optional docstring
-    m.def("_random_walks_classic_cpp", &_random_walks_classic_cpp, "Vanilla C++ random walks function");
 }

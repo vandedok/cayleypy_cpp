@@ -16,7 +16,11 @@ if CAYLEYPY_BUILD_CPP:
         ext_modules = [
             cpp_extension.CppExtension(
                 "cayleypy._cpp_algo",
-                ["cayleypy/_cpp_algo/random_walks.cpp"],
+                [
+                    "cayleypy/_cpp_algo/pybind11.cpp",
+                    "cayleypy/_cpp_algo/random_walks.cpp",
+                    "cayleypy/_cpp_algo/random_walks_torch.cpp",
+                ],
                 include_dirs=[pybind11.get_include()],
                 language="c++",
                 extra_compile_args={"cxx": ["-std=c++17"]},
