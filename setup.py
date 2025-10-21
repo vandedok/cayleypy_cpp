@@ -23,7 +23,7 @@ def build_optional_cpp_extensions(
             import pybind11
             from torch.utils import cpp_extension
 
-            print("Building CayleyPy with optional torch cpp extentions")
+            print("CAYLEYPY_BUILD_CPP is set to 1, building CayleyPy with optional torch cpp extensions")
 
             extra_compile_args = {"cxx": ["-std=c++17"]}
             extra_link_args = []
