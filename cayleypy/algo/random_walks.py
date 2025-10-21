@@ -6,6 +6,10 @@ import numpy as np
 import torch
 
 from ..torch_utils import TorchHashSet
+from ..import_utils import CPP_EXT_AVAILABLE
+
+if CPP_EXT_AVAILABLE:
+    from ..cpp_algo import random_walks_classic_cpp
 
 if TYPE_CHECKING:
     from ..cayley_graph import CayleyGraph
@@ -63,7 +67,9 @@ class RandomWalksGenerator:
             trajectories know about each other and avoid visiting states visited by any trajectory. Additionally,
             1-neighbors of current states are also banned to improve mixing. The `nbt_history_depth` parameter
             controls how many previous levels to remember and ban.
-          * "classic_cpp" - similar to "classic", but implemented in C++ for better performance. Supports parallel execution on CPU.
+          * "classic_cpp" - similar to "classic", but implemented in C++ for better performance.
+            Supports parallel execution on CPU powered with openMP. Will be installed only if CayleyPy
+            cpp extensions are enabled during installation.
 
 
         :param width: Number of random walks to generate.
@@ -83,7 +89,7 @@ class RandomWalksGenerator:
 
         if mode != "classic_cpp":
             start_state = self.graph.encode_states(start_state)
-            
+
         if mode == "classic":
             return self.random_walks_classic(width, length, start_state)
         elif mode == "bfs":
@@ -249,15 +255,20 @@ class RandomWalksGenerator:
 
         return graph.decode_states(states), y
 
+    def random_walks_classic_cpp(
+        self, width: int, length: int, start_state: torch.Tensor, num_threads: int = 0
+    ) -> tuple[torch.Tensor, torch.Tensor]:
 
-    def random_walks_classic_cpp(self, width: int, length: int, start_state: torch.Tensor, num_threads: int = 0) -> tuple[torch.Tensor, torch.Tensor]:
-            from .._cpp_algo import random_walks_classic_cpp # TODO move import, make sure it is conditional
-            
-            rw_result = random_walks_classic_cpp(
-                torch.tensor(self.graph.generators).cpu(),
-                start_state.cpu(),
-                width,
-                length,
-                num_threads
-            )
-            return rw_result.states.to(self.graph.device), rw_result.distances.to(self.graph.device)
+        if not CPP_EXT_AVAILABLE:
+            raise ImportError("C++ extensions for CayleyPy seem to be missing.")
+
+        # pylint: disable=E0606
+        rw_result = random_walks_classic_cpp(
+            torch.tensor(self.graph.generators).cpu(), start_state.cpu(), width, length, num_threads
+        )
+        # pylint: enable=E0606
+
+        # Permuting and flattening to match other modes output format
+        x = rw_result.states.to(self.graph.device).permute(1, 0, 2).flatten(0, 1).contiguous()
+        y = rw_result.distances.to(self.graph.device).permute(1, 0).flatten(0, 1).contiguous()
+        return x, y

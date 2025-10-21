@@ -3,10 +3,10 @@ from setuptools import setup
 from os import getenv
 
 
-
-
-def build_optional_cpp_extensions(ext_modules:list[str], cmdclass: dict[str, Any])->tuple[list[str], dict[str, type]]:
-    '''
+def build_optional_cpp_extensions(
+    ext_modules: list[str], cmdclass: dict[str, Any]
+) -> tuple[list[str], dict[str, type]]:
+    """
     Build optional cpp extentions using pybind11 and torch cpp_extension.
     Controlled by env variables CAYLEYPY_BUILD_CPP and CAYLEYPY_INCLUDE_OPENMP.
 
@@ -14,14 +14,15 @@ def build_optional_cpp_extensions(ext_modules:list[str], cmdclass: dict[str, Any
     If CAYLEYPY_INCLUDE_OPENMP is set to 1, OpenMP flags will be included.
 
     Currently only Linux-like systems are supported for OpenMP.
-    '''
-    
+    """
+
     CAYLEYPY_BUILD_CPP = getenv("CAYLEYPY_BUILD_CPP", "0")
     CAYLEYPY_INCLUDE_OPENMP = getenv("CAYLEYPY_INCLUDE_OPENMP", "1")
-    if CAYLEYPY_BUILD_CPP:
+    if CAYLEYPY_BUILD_CPP=="1":
         try:
             import pybind11
             from torch.utils import cpp_extension
+
             print("Building CayleyPy with optional torch cpp extentions")
 
             extra_compile_args = {"cxx": ["-std=c++17"]}
@@ -33,10 +34,10 @@ def build_optional_cpp_extensions(ext_modules:list[str], cmdclass: dict[str, Any
 
             ext_modules.append(
                 cpp_extension.CppExtension(
-                    "cayleypy._cpp_algo",
+                    "cayleypy.cpp_algo.cpp_algo",
                     [
-                        "cayleypy/_cpp_algo/pybind11.cpp",
-                        "cayleypy/_cpp_algo/random_walks.cpp",
+                        "cayleypy/cpp_algo/cpp_algo/pybind11.cpp",
+                        "cayleypy/cpp_algo/cpp_algo/random_walks.cpp",
                     ],
                     include_dirs=[pybind11.get_include()],
                     language="c++",
@@ -45,7 +46,7 @@ def build_optional_cpp_extensions(ext_modules:list[str], cmdclass: dict[str, Any
                 ),
             )
             cmdclass["build_ext"] = cpp_extension.BuildExtension
-            
+
         except Exception as e:
             if CAYLEYPY_BUILD_CPP:
                 raise Exception(
@@ -59,7 +60,7 @@ def build_optional_cpp_extensions(ext_modules:list[str], cmdclass: dict[str, Any
             else:
                 raise Exception(e)
     else:
-        print("Didn't find torch during build -- building CayleyPy without optional torch cpp extensions ")
+        print("CAYLEYPY_BUILD_CPP is not 1, not building cpp extensions.")
 
     return ext_modules, cmdclass
 

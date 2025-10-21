@@ -4,7 +4,7 @@
 
 namespace py = pybind11;
 
-PYBIND11_MODULE(_cpp_algo, m) {
+PYBIND11_MODULE(cpp_algo, m) {
     m.doc() = "pybind11 bindings for CayleyPy C++ algorithms";
     py::class_<WalksCpp>(m, "WalksCpp")
     .def_property_readonly("states",    [](const WalksCpp& w){ return w.states; })
