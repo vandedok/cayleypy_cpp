@@ -1,135 +1,87 @@
 #include "random_walks.h"
 
-#include <iostream>
-#include <vector>
-#include <random>
 #include <torch/extension.h>
+#include <cstdint>
+#include <cstring>
 
-namespace py = pybind11;
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
-using std::vector;
-using std::cout;
 using torch::Tensor;
-using torch::tensor;
+using torch::TensorOptions;
 
-const int* get_row_ptr(const vector<int>& mat, int row, int row_size) {
-    return &mat[static_cast<size_t>(row) * row_size];
+WalksCpp::WalksCpp(int num_walks, int walks_len, int state_size, TensorOptions options) {
+    states = torch::empty({num_walks, walks_len, state_size}, options.dtype(torch::kLong));
+    distances = torch::empty({num_walks, walks_len},            options.dtype(torch::kLong));
 }
 
-void apply_gen(
-    const vector<int>& state, 
-    const int gen_k, 
-    const vector<int>& gens, 
-    const int state_size,
-    vector<int>& result
-) {
-    const int* gen_ptr = get_row_ptr(gens, gen_k, state_size);
-    for(int i=0; i<state_size; i++){
-        result[i] = state[gen_ptr[i]];
-    }   
-} 
+WalksCpp random_walks_classic_cpp(
+    Tensor gens,            
+    Tensor central_state,  
+    const int64_t num_walks,
+    const int64_t walks_len,
+    int num_omp_threads
+){
+    TORCH_CHECK(gens.device().is_cpu(), "CPU only implementation (for now).");
+    TORCH_CHECK(central_state.device().is_cpu(), "CPU only implementation (for now).");
+    TORCH_CHECK(gens.dtype() == torch::kLong, "gens must be int64 (LongTensor).");
+    TORCH_CHECK(central_state.dtype() == torch::kLong, "central_state must be int64 (LongTensor).");
+    TORCH_CHECK(gens.dim() == 2, "gens must be 2D [num_gens, state_size].");
+    TORCH_CHECK(central_state.dim() == 1, "central_state must be 1D [state_size].");
+    TORCH_CHECK(num_walks >= 0 && walks_len >= 0, "num_walks and walks_len must be non-negative.");
 
+    const int64_t num_gens   = gens.size(0);
+    const int64_t state_size = gens.size(1);
 
-struct Walks {
-    int num_walks;
-    int walk_length;
-    int state_size;
-    vector<int> states;
-    vector<int> gen_choices;
-    vector<int> distances;
+    gens = gens.contiguous();
+    central_state = central_state.contiguous();
 
-    Walks(int num_walks, int walks_len, int state_size)
-        : num_walks(num_walks),
-          walk_length(walks_len),
-          state_size(state_size)
-    {
-        states.reserve(num_walks * walk_length * state_size);
-        gen_choices.reserve(num_walks * walk_length);
-        distances.reserve(num_walks * walk_length);
-    }
+    TensorOptions tensor_options = central_state.options();
+    WalksCpp walks(num_walks, walks_len, state_size, tensor_options);
 
-    const int* get_state_ptr(int walk, int step) const {
-        size_t offset = static_cast<size_t>((walk * walk_length + step) * state_size);
-        return &states[offset];
-    }
+    // first state is central_state, so only need (walks_len - 1) random choices
+    Tensor choices = torch::randint(num_gens, {num_walks, walks_len-1}, tensor_options.dtype(torch::kLong)); 
 
-    vector<int> get_state_copy(int walk_k, int step_k) const {
-        const int* ptr = get_state_ptr(walk_k, step_k);
-        return vector<int>(ptr, ptr + state_size);
-    }
+    const int64_t* gens_ptr = gens.data_ptr<int64_t>();
+    const int64_t* central_state_ptr = central_state.data_ptr<int64_t>();
+    const int64_t* choices_ptr = choices.data_ptr<int64_t>();
+    int64_t* states_ptr = walks.states.data_ptr<int64_t>();
+    int64_t* distances_ptr = walks.distances.data_ptr<int64_t>();
+    int64_t choices_row_len = walks_len - 1;
 
-    int get_choice(int walk, int step) const {
-        return gen_choices[walk * walk_length + step];
-    }
-};
-
-Walks generate_random_walk(const vector<int> gens, const vector<int> central_state, const int num_walks, const int walks_len, const int num_gens, const int state_size){
-    
-    int n_choices{num_walks*walks_len};  // how many numbers
-    int low{0}; 
-    int high{num_gens-1};  
-
-    std::mt19937 gen(std::random_device{}());
-    std::uniform_int_distribution<int> dist(low, high);
-    Walks rw_result(num_walks, walks_len, state_size); 
-
-    vector<int> current_state(central_state);
-    vector<int> next_state(state_size);
-    int choice{0};
-    int walks_index_offset{0};
-
-    for (int i = 0; i < n_choices; i++) {
-        rw_result.gen_choices.push_back(dist(gen));
-    }
-
-    for(int iw = 0; iw < num_walks; iw++) {
-        current_state = central_state;
-        walks_index_offset = iw * walks_len;
-        for(int js = 0; js < walks_len; js++){
-            apply_gen(current_state, rw_result.gen_choices[walks_index_offset + js], gens, state_size, next_state);
-            current_state.swap(next_state);
-            for (int k = 0; k < state_size; k++)
-                rw_result.states.push_back(current_state[k]);
+    #ifdef _OPENMP
+        if (num_omp_threads > 0) {
+            omp_set_num_threads(num_omp_threads);
         }
-    }
+    #endif
 
-    return rw_result;
-}
+    #pragma omp parallel for if(num_omp_threads) schedule(static)
+    for (int64_t iw = 0; iw < num_walks; ++iw) {
+        const int64_t* current_ptr = central_state_ptr;  
+        const int64_t offset = iw * walks_len;
 
+        // first state  is just the central state, all distances are 0
+        int64_t* out_ptr0 = states_ptr + (iw * walks_len * state_size);
+        std::memcpy(out_ptr0, current_ptr, static_cast<size_t>(state_size) * sizeof(int64_t));
+        std::memset(distances_ptr + offset, 0, sizeof(int64_t));
 
-Tensor _random_walks_classic_cpp(const vector<int> gens, const vector<int> central_state, const int num_gens, const int state_size, const int num_walks, const int walks_len) {
-    // print_vec(gens);
-
-    int n_choices{num_walks*walks_len};  
-    int low{0}; 
-    int high{num_gens-1};  
-
-    std::mt19937 gen(std::random_device{}());
-    std::uniform_int_distribution<int> dist(low, high);
-    Walks rw_result(num_walks, walks_len, state_size); 
-
-    vector<int> current_state(central_state);
-    vector<int> next_state(state_size);
-    int choice{0};
-
-
-    for (int i = 0; i < n_choices; i++) {
-        rw_result.gen_choices.push_back(dist(gen));
-    }
-
-    for(int iw = 0; iw < num_walks; iw++) {
-        current_state = central_state;
-        for(int js = 0; js < walks_len; js++){
-            apply_gen(current_state, rw_result.gen_choices[iw*walks_len + js], gens, state_size, next_state);
-            current_state.swap(next_state);
-            for (int k = 0; k < state_size; k++) {
-                rw_result.states.push_back(current_state[k]);
-                rw_result.distances.push_back(k);
+        for (int64_t js = 1; js < walks_len; ++js) {
+            // choices start from step 1, as step 0 is central_state, so js - 1
+            const int64_t choice = choices_ptr[iw * choices_row_len + js - 1]; 
+            const int64_t* gen_row = gens_ptr + choice * state_size;
+            int64_t* out_ptr = states_ptr + ((offset + js) * state_size);
+            // apply generator
+            for (int64_t k = 0; k < state_size; ++k) {
+                out_ptr[k] = current_ptr[gen_row[k]];
             }
+            current_ptr = out_ptr;
+
+            // distances are estimated as numbers of random walk steps
+            distances_ptr[offset + js] = js;
         }
     }
-    
-    auto states_tensor = tensor(rw_result.states, torch::dtype(torch::kInt32));
-    // return rw_result by reference? -- less safe, might be more efficient
-    return states_tensor; 
+
+    return walks;
 }
+
