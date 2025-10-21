@@ -35,6 +35,7 @@ class RandomWalksGenerator:
         mode="classic",
         start_state: Union[None, torch.Tensor, np.ndarray, list] = None,
         nbt_history_depth: int = 0,
+        num_threads: int = 0,
     ) -> tuple[torch.Tensor, torch.Tensor]:
         """Generates random walks on the graph.
 
@@ -62,22 +63,35 @@ class RandomWalksGenerator:
             trajectories know about each other and avoid visiting states visited by any trajectory. Additionally,
             1-neighbors of current states are also banned to improve mixing. The `nbt_history_depth` parameter
             controls how many previous levels to remember and ban.
+          * "classic_cpp" - similar to "classic", but implemented in C++ for better performance. Supports parallel execution on CPU.
+
 
         :param width: Number of random walks to generate.
         :param length: Length of each random walk.
         :param start_state: State from which to start random walk. Defaults to the central state.
         :param mode: Type of random walk (see above). Defaults to "classic".
         :param nbt_history_depth: For "nbt" mode, how many previous levels to remember and ban from revisiting.
+        :param num_threads: For "classic_cpp" mode, number of threads to use. Defaults to 0 (no parallelization).
         :return: Pair of tensors ``x, y``. ``x`` contains states. ``y[i]`` is the estimated distance from start state
           to state ``x[i]``.
         """
-        start_state = self.graph.encode_states(start_state or self.graph.central_state)
+
+        if start_state is not None:
+            start_state = torch.as_tensor(start_state, device=self.graph.device)
+        else:
+            start_state = self.graph.central_state
+
+        if mode != "classic_cpp":
+            start_state = self.graph.encode_states(start_state)
+            
         if mode == "classic":
             return self.random_walks_classic(width, length, start_state)
         elif mode == "bfs":
             return self.random_walks_bfs(width, length, start_state)
         elif mode == "nbt":
             return self.random_walks_nbt(width, length, start_state, nbt_history_depth)
+        elif mode == "classic_cpp":
+            return self.random_walks_classic_cpp(width, length, start_state, num_threads)
         else:
             raise ValueError("Unknown mode:", mode)
 
@@ -102,9 +116,10 @@ class RandomWalksGenerator:
         y[:width] = 0
 
         # Main loop.
+        gen_idx_all = torch.randint(0, graph.definition.n_generators, (width, length), device=graph.device)
         for i_step in range(1, length):
             y[i_step * width : (i_step + 1) * width] = i_step
-            gen_idx = torch.randint(0, graph.definition.n_generators, (width,), device=graph.device)
+            gen_idx = gen_idx_all[:, i_step]
             src = x[(i_step - 1) * width : i_step * width, :]
             dst = x[i_step * width : (i_step + 1) * width, :]
             for j in range(graph.definition.n_generators):
@@ -235,46 +250,14 @@ class RandomWalksGenerator:
         return graph.decode_states(states), y
 
 
-# from .._cpp_algo import random_
-# def random_walks_classic_cpp(
-#         self, width: int, length: int, start_state: torch.Tensor
-#     ) -> tuple[torch.Tensor, torch.Tensor]:
-
-
-#         assert self.graph.is_permutation_group(), "C++ random walks only supported for permutation groups."
-
-
-#         """Generate classic random walks.
-
-#         :param width: Number of random walks to generate.
-#         :param length: Length of each random walk.
-#         :param start_state: Starting state for all walks.
-#         :return: Tuple of (states, distances).
-#         """
-
-
-#         # Allocate memory.
-#         graph = self.graph
-#         x_shape = (width * length, graph.encoded_state_size)
-#         x = torch.zeros(x_shape, device=graph.device, dtype=torch.int64)
-#         y = torch.zeros(width * length, device=graph.device, dtype=torch.int32)
-
-#         # First state in each walk is the start state.
-#         x[:width, :] = start_state.reshape((-1,))
-#         y[:width] = 0
-
-#         # Main loop.
-#         for i_step in range(1, length):
-#             y[i_step * width : (i_step + 1) * width] = i_step
-#             gen_idx = torch.randint(0, graph.definition.n_generators, (width,), device=graph.device)
-#             src = x[(i_step - 1) * width : i_step * width, :]
-#             dst = x[i_step * width : (i_step + 1) * width, :]
-#             for j in range(graph.definition.n_generators):
-#                 # Go to next state for walks where we chose to use j-th generator on this step.
-#                 mask = gen_idx == j
-#                 prev_states = src[mask, :]
-#                 next_states = torch.zeros_like(prev_states)
-#                 graph.apply_generator_batched(j, prev_states, next_states)
-#                 dst[mask, :] = next_states
-
-#         return graph.decode_states(x), y
+    def random_walks_classic_cpp(self, width: int, length: int, start_state: torch.Tensor, num_threads: int = 0) -> tuple[torch.Tensor, torch.Tensor]:
+            from .._cpp_algo import random_walks_classic_cpp # TODO move import, make sure it is conditional
+            
+            rw_result = random_walks_classic_cpp(
+                torch.tensor(self.graph.generators).cpu(),
+                start_state.cpu(),
+                width,
+                length,
+                num_threads
+            )
+            return rw_result.states.to(self.graph.device), rw_result.distances.to(self.graph.device)

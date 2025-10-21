@@ -214,6 +214,15 @@ List of currently available models is
     for inference (i.e. has correct input and output shape), but it doesn't check quality of your model.
 9. Optionally, add a test that beam search with your model successfully finds a path.
 
+## Installation with C++ extensions
+There are several functions in CayleyPy implemented in C++ and bridged to python with `pybind11` and `torch.utils.cpp_extension`. These functions are experimental and may not compile on all platforms. If you want to install those, run the following (we strongly recommend using clean python venv here):
+
+```bash
+export CAYLEYPY_BUILD_CPP=1 
+pip install -r cpp_ext_build_requirements.txt 
+pip install --no-build-isolation .
+```
+
 ## Kaggle competitions
 
 Our community has recently launched several Kaggle competitions to develop and benchmark our methods and make it easier for the larger audience to get involved. Most of those competitions don't require the usage of this library, however it might be handy as those tasks are the ones 
