@@ -8,6 +8,7 @@ build/
 htmlcov/
 .venv/
 dist/
+*.so
 
 # Sphinx
 docs/_build
