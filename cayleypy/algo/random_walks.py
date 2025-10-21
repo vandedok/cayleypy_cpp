@@ -6,12 +6,9 @@ import numpy as np
 import torch
 
 from ..torch_utils import TorchHashSet
-from ..import_utils import CPP_EXT_AVAILABLE
+from ..import_utils import import_cpp_extension
 
-# pylint: disable=E0611
-if CPP_EXT_AVAILABLE:
-    from ..cpp_algo import random_walks_classic_cpp  # type: ignore
-# pylint: enable=E0611
+random_walks_classic_cpp = import_cpp_extension("random_walks_classic_cpp")
 
 if TYPE_CHECKING:
     from ..cayley_graph import CayleyGraph
@@ -261,8 +258,8 @@ class RandomWalksGenerator:
         self, width: int, length: int, start_state: torch.Tensor, num_threads: int = 0
     ) -> tuple[torch.Tensor, torch.Tensor]:
 
-        if not CPP_EXT_AVAILABLE:
-            raise ImportError("C++ extensions for CayleyPy seem to be missing.")
+        if random_walks_classic_cpp is None:
+            raise ImportError("random_walks_classic_cpp C++ extension is not available.")
 
         # pylint: disable=E0606
         rw_result = random_walks_classic_cpp(
