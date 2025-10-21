@@ -61,9 +61,9 @@ jobs:
       - name: Install build requirements
         run: pip install -r cpp_ext_build_requirements.txt
       - name: Install requirements
-        run: export CAYLEYPY_BUILD_CPP=1; pip install --no-build-isolation .[test]
+        run: CAYLEYPY_BUILD_CPP=1 pip install --no-build-isolation .[test]
       - name: Run tests
-        run: RUN_SLOW_TESTS=1 pytest
+        run: RUN_CPP_TESTS=1 RUN_SLOW_TESTS=1 pytest
   pytest-windows:
     name: Tests (Windows)
     runs-on: windows-latest

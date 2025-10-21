@@ -218,10 +218,27 @@ List of currently available models is
 There are several functions in CayleyPy implemented in C++ and bridged to python with `pybind11` and `torch.utils.cpp_extension`. These functions are experimental and may not compile on all platforms. If you want to install those, run the following (we strongly recommend using clean python venv here):
 
 ```bash
-export CAYLEYPY_BUILD_CPP=1 
 pip install -r cpp_ext_build_requirements.txt 
-pip install --no-build-isolation .
+CAYLEYPY_BUILD_CPP=1  pip install --no-build-isolation .
 ```
+
+### Development notes
+
+All tests which require c++ extensions should:
+
+```python
+RUN_CPP_TESTS = os.getenv("RUN_CPP_TESTS") == "1"
+
+@pytest.mark.skipif(not RUN_CPP_TESTS, reason="cpp test")
+def test_something_with_cpp_extention():
+    ...
+```
+
+These tests are disabled by default. To enable run the tests inculing the ones with c++ extentions, run:
+```bash
+RUN_CPP_TESTS=1 pytest
+```
+
 
 ## Kaggle competitions
 

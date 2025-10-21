@@ -18,7 +18,7 @@ def build_optional_cpp_extensions(
 
     CAYLEYPY_BUILD_CPP = getenv("CAYLEYPY_BUILD_CPP", "0")
     CAYLEYPY_INCLUDE_OPENMP = getenv("CAYLEYPY_INCLUDE_OPENMP", "1")
-    if CAYLEYPY_BUILD_CPP=="1":
+    if CAYLEYPY_BUILD_CPP == "1":
         try:
             import pybind11
             from torch.utils import cpp_extension
@@ -34,10 +34,10 @@ def build_optional_cpp_extensions(
 
             ext_modules.append(
                 cpp_extension.CppExtension(
-                    "cayleypy.cpp_algo.cpp_algo",
+                    "cayleypy.cpp_algo",
                     [
-                        "cayleypy/cpp_algo/cpp_algo/pybind11.cpp",
-                        "cayleypy/cpp_algo/cpp_algo/random_walks.cpp",
+                        "cayleypy/cpp_algo/pybind11.cpp",
+                        "cayleypy/cpp_algo/random_walks.cpp",
                     ],
                     include_dirs=[pybind11.get_include()],
                     language="c++",
@@ -60,7 +60,7 @@ def build_optional_cpp_extensions(
             else:
                 raise Exception(e)
     else:
-        print("CAYLEYPY_BUILD_CPP is not 1, not building cpp extensions.")
+        print("CAYLEYPY_BUILD_CPP is not set to 1, not building cpp extensions.")
 
     return ext_modules, cmdclass
 

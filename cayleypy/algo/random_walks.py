@@ -8,8 +8,10 @@ import torch
 from ..torch_utils import TorchHashSet
 from ..import_utils import CPP_EXT_AVAILABLE
 
+# pylint: disable=E0611
 if CPP_EXT_AVAILABLE:
-    from ..cpp_algo import random_walks_classic_cpp
+    from ..cpp_algo import random_walks_classic_cpp  # type: ignore
+# pylint: enable=E0611
 
 if TYPE_CHECKING:
     from ..cayley_graph import CayleyGraph
