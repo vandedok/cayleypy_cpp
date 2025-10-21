@@ -1,51 +1,71 @@
+from typing import Any
 from setuptools import setup
 from os import getenv
 
-ext_modules = []
-cmdclass = {}
 
-# Installing cpp_extnetions is conditional and guided by
-# CAYLEYPY_BUILD_CPP_EXT env variable. If it is set to 1,
-# pybind11 and torch are needed at build time.
-CAYLEYPY_BUILD_CPP = getenv("CAYLEYPY_BUILD_CPP")
-if CAYLEYPY_BUILD_CPP:
-    try:
-        import pybind11
-        from torch.utils import cpp_extension
 
-        ext_modules = [
-            cpp_extension.CppExtension(
-                "cayleypy._cpp_algo",
-                [
-                    "cayleypy/_cpp_algo/pybind11.cpp",
-                    "cayleypy/_cpp_algo/random_walks.cpp",
-                    "cayleypy/_cpp_algo/random_walks_torch.cpp",
-                ],
-                include_dirs=[pybind11.get_include()],
-                language="c++",
-                extra_compile_args={"cxx": ["-std=c++17"]},
-            ),
-        ]
-        cmdclass = {"build_ext": cpp_extension.BuildExtension}
-        print("Building CayleyPy with optional torch cpp extentions")
-    except Exception as e:
-        if CAYLEYPY_BUILD_CPP:
-            raise Exception(
-                f"""
-                Got the following exeption during setting up cpp extentions:
-                \n{e}.\n 
-                CAYLEYPY_BUILD_CPP is set to {CAYLEYPY_BUILD_CPP}. 
-                If you want to install CayleyPy without cpp extnetions, set it to 0.
-                """
+
+def build_optional_cpp_extensions(ext_modules:list[str], cmdclass: dict[str, Any])->tuple[list[str], dict[str, type]]:
+    '''
+    Build optional cpp extentions using pybind11 and torch cpp_extension.
+    Controlled by env variables CAYLEYPY_BUILD_CPP and CAYLEYPY_INCLUDE_OPENMP.
+
+    If CAYLEYPY_BUILD_CPP is set to 1, the cpp extensions will be built.
+    If CAYLEYPY_INCLUDE_OPENMP is set to 1, OpenMP flags will be included.
+
+    Currently only Linux-like systems are supported for OpenMP.
+    '''
+    
+    CAYLEYPY_BUILD_CPP = getenv("CAYLEYPY_BUILD_CPP", "0")
+    CAYLEYPY_INCLUDE_OPENMP = getenv("CAYLEYPY_INCLUDE_OPENMP", "1")
+    if CAYLEYPY_BUILD_CPP:
+        try:
+            import pybind11
+            from torch.utils import cpp_extension
+            print("Building CayleyPy with optional torch cpp extentions")
+
+            extra_compile_args = {"cxx": ["-std=c++17"]}
+            extra_link_args = []
+
+            if CAYLEYPY_INCLUDE_OPENMP != "0":
+                extra_compile_args["cxx"].append("-fopenmp")
+                extra_link_args.append("-fopenmp")
+
+            ext_modules.append(
+                cpp_extension.CppExtension(
+                    "cayleypy._cpp_algo",
+                    [
+                        "cayleypy/_cpp_algo/pybind11.cpp",
+                        "cayleypy/_cpp_algo/random_walks.cpp",
+                    ],
+                    include_dirs=[pybind11.get_include()],
+                    language="c++",
+                    extra_compile_args=extra_compile_args,
+                    extra_link_args=extra_link_args,
+                ),
             )
-        else:
-            raise Exception(e)
-else:
-    print("Didn't find torch during build -- building CayleyPy without optional torch cpp extentions ")
+            cmdclass["build_ext"] = cpp_extension.BuildExtension
+            
+        except Exception as e:
+            if CAYLEYPY_BUILD_CPP:
+                raise Exception(
+                    f"""
+                    Got the following exception during setting up cpp extensions:
+                    \n{e}.\n 
+                    CAYLEYPY_BUILD_CPP is set to {CAYLEYPY_BUILD_CPP}. 
+                    If you want to install CayleyPy without cpp extensions, set it to 0.
+                    """
+                )
+            else:
+                raise Exception(e)
+    else:
+        print("Didn't find torch during build -- building CayleyPy without optional torch cpp extensions ")
+
+    return ext_modules, cmdclass
 
 
 if __name__ == "__main__":
-    setup(
-        ext_modules=ext_modules,
-        cmdclass=cmdclass,
-    )
+    ext_modules = []
+    cmdclass = {}
+    ext_modules, cmdclass = build_optional_cpp_extensions(ext_modules, cmdclass)
+    setup(ext_modules=ext_modules, cmdclass=cmdclass)
